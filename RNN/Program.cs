@@ -15,28 +15,38 @@
             // cut data into 4+1 where 4 is the input and 1 is the value the model has to predict
 
             List<string> inputData = File.ReadAllLines("amzn.csv").Skip(1).Select(x => x).ToList();
-            List<string> helper = new List<string>();   
-            
-            RecurrentNeuralNetwork rnn = new RecurrentNeuralNetwork();
+            List<string> helper = new List<string>();
 
-            int index = 0;
-            for (int i = 0; i < inputData.Count; i++)
+            double epochs = 5000;
+            double sum = 0;
+            RecurrentNeuralNetwork rnn = new RecurrentNeuralNetwork();
+            for (int j = 0; j < epochs; j++)
             {
-                if (index < 5)
+                for (int i = 0; i < inputData.Count; i = i + 5)
                 {
-                    helper.Add(inputData[i]);
-                    index++;
+                    if (i is not 0)
+                    {
+                        helper.Add(inputData[i - 4]);
+                        helper.Add(inputData[i - 3]);
+                        helper.Add(inputData[i - 2]);
+                        helper.Add(inputData[i - 1]);
+                        helper.Add(inputData[i]);
+
+
+                        // training and testing loop
+                        rnn.Initialize(helper);
+                        rnn.CalculateActivations();
+                        rnn.Backpropagate();
+                        sum += rnn.Error();
+                        helper = new List<string>();
+
+                    }
                 }
-                else if(index == 5)
-                {
-                    // training and testing loop
-                    rnn.Initialize(helper);
-                    rnn.CalculateActivations();
-                    Console.WriteLine($"Error: {rnn.Error()}");
-                    helper = new List<string>();
-                    index = 0;
-                }
+
+                Console.WriteLine($"Average Error: {sum / inputData.Count}");
             }
+
+            
 
         }
     }
